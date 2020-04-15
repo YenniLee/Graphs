@@ -28,6 +28,7 @@ class Graph:
 def earliest_ancestor(ancestors, starting_node):
     
     earliest_ancestor = -1
+    # set variable for how far back an ancestor goes or len(path)
     depth = 0
 
     graph = Graph()
