@@ -1,6 +1,23 @@
+import random 
+import time
+
 class User:
     def __init__(self, name):
         self.name = name
+
+class Queue():
+    def __init__(self):
+        self.queue = []
+
+    def enqueue(self, value):
+        self.queue.append(value)
+
+    def dequeue(self):
+        return self.queue.pop(0)    
+
+    def size(self):
+        return len(self.queue)
+    
 
 class SocialGraph:
     def __init__(self):
@@ -43,10 +60,28 @@ class SocialGraph:
         self.users = {}
         self.friendships = {}
         # !!!! IMPLEMENT ME
-
         # Add users
 
         # Create friendships
+        for i in range(0, num_users):
+            self.add_user(f"User {i+1}")
+            
+        # Generate all friendship combinations
+        possible_friendships =  []
+        
+        # Avoid dupes by making sure first number is smaller than second
+        for user_id in self.users:
+            for friend_id in range(user_id+1, self.last_id+1):
+                possible_friendships.append((user_id, friend_id))
+                
+        # Shuffle all possible friendships
+        random.shuffle(possible_friendships)
+
+        # Create for first X pairs -- x is total //2
+        for i in range(num_users * avg_friendships // 2):
+            friendship = possible_friendships[i]
+            self.add_friendship(friendship[0], friendship[1])
+
 
     def get_all_social_paths(self, user_id):
         """
@@ -59,12 +94,57 @@ class SocialGraph:
         """
         visited = {}  # Note that this is a dictionary, not a set
         # !!!! IMPLEMENT ME
+        # use bfs to find shortest paths between friends
+        qq = Queue()
+        # enqueue path to starting user_id
+        qq.enqueue([user_id])
+        # while queue is not empty 
+        while qq.size() > 0:
+            # dequeue first path
+            path = qq.dequeue()
+            # grab user from end of path
+            user = path[-1]
+            if user not in visited:
+                # add to visited dictionary user is key and path is value
+                visited[user] = path
+                # enqueue neighbors
+                for next_f in self.friendships[user]:
+                    # copy path and add neighbor nodes
+                    new_path = path.copy()
+                    new_path.append(next_f)
+                    qq.enqueue(new_path)
+
         return visited
 
 
 if __name__ == '__main__':
     sg = SocialGraph()
     sg.populate_graph(10, 2)
-    print(sg.friendships)
+    start_time = time.time()
+    # sg.populate_graph(1000, 5)
+    end_time = time.time()
+    print('network:', sg.friendships)
     connections = sg.get_all_social_paths(1)
-    print(connections)
+    print('connections:', connections)
+
+    print(f"O(n^2) populate_graph(): {end_time - start_time} seconds")
+
+
+users = 0
+degree_of_sep = 0
+
+for i in range(1, 1000):
+    if i in connections:
+        users += 1
+        degree_of_sep += len(connections[i])
+avg_degree_of_sep = degree_of_sep // users
+
+
+# print(f"degree of separation: {avg_degree_of_sep}")
+# degree of separation: 6
+
+# len(connections) / 1000 # total number of users = 0.xxx
+# 0.xxx * 100 = xx.x % 
+# len(connections) / 10 
+# print(f"percentage of being in user's network: {len(connections) / 10} %")
+
